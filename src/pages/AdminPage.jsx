@@ -1,6 +1,23 @@
+import { useAuth } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
+import { getUserStats } from "../utils/savedHelper";
+
+
 function AdminPage() {
   // Check if a user is an admin and return all users' saved articles if they are. Redirect them to home if not.
 
+  // get users role
+  const {hasRole} = useAuth();
+
+  // if no admin role -> redirect
+  if (!hasRole('admin')) {
+    return <Navigate to="/" replace />;
+  }
+
+  // get user stats
+  const userStats = getUserStats();
+
+  // conditionally render output
   return (
     <div>
       <h2 className="page-heading">Admin Dashboard</h2>
@@ -17,24 +34,24 @@ function AdminPage() {
         </p>
       </div>
 
-      {Object.keys(allUserArticles).length === 0 ? (
+      {userStats.length === 0 ? (
         <div className="message">
           No users have saved any articles yet.
         </div>
       ) : (
         <div>
-          {Object.entries(allUserArticles).map(([username, articles]) => (
-            <div key={username} style={{ marginBottom: '32px' }}>
+          {userStats.map((user) => (
+            <div key={user.username} style={{ marginBottom: '32px' }}>
               <h3 style={{ 
                 color: '#333', 
                 borderBottom: '2px solid #e0e0e0', 
                 paddingBottom: '8px',
                 marginBottom: '16px'
               }}>
-                {username}'s Saved Articles ({articles.length})
+                {user.username}'s Saved Articles ({user.saved.length})
               </h3>
               
-              {articles.length === 0 ? (
+              {user.saved.length === 0 ? (
                 <p style={{ color: '#666', marginLeft: '16px' }}>No saved articles</p>
               ) : (
                 <div style={{ 
@@ -43,7 +60,7 @@ function AdminPage() {
                   gap: '16px',
                   marginLeft: '16px'
                 }}>
-                  {articles.map((article, index) => (
+                  {user.saved.map((article, index) => (
                     <div 
                       key={index}
                       style={{

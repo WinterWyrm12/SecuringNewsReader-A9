@@ -1,24 +1,57 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 // ⚠️ SECURITY ISSUE: This context is shared globally with no user authentication
 // All users see the same saved articles!
+
 const ArticlesContext = createContext();
 
 export function ArticlesProvider({ children }) {
   const [savedArticles, setSavedArticles] = useState([]);
 
-  const saveArticle = (article) => {
-    setSavedArticles(prev => {
-      // Check if article is already saved
-      if (prev.find(a => a.url === article.url)) {
-        return prev;
-      }
-      return [...prev, article];
-    });
-  };
+  // get user
+  const {user} = useAuth();
+
+  // get only users saved articles
+  useEffect(() => {
+    if (!user) {
+      setSavedArticles([]);
+      return;
+    }
+  
+
+    // load saved
+    const allSaved = JSON.parse(localStorage.getItem('savedArticlesByUser')) || {};
+    // get only current users saved
+    const userSaved = allSaved[user.username] || [];
+    setSavedArticles(userSaved);
+}, [user]);
+
+const saveArticle = (article) => {
+    if (!user) return;
+    const allSaved = JSON.parse(localStorage.getItem('savedArticlesByUser')) || {};
+    const userArticles = allSaved[user.username] || [];
+    // prevent duplicates
+    if (userArticles.some(a => a.url === article.url)) {
+      return;
+    }
+
+    const updatedArticles = [...userArticles, article];
+    // update storage
+    allSaved[user.username] = updatedArticles;
+
+    localStorage.setItem('savedArticlesByUser', JSON.stringify(allSaved));
+    setSavedArticles(updatedArticles);
+};
 
   const removeArticle = (url) => {
-    setSavedArticles(prev => prev.filter(a => a.url !== url));
+    if (!user) return;
+    const allSaved = JSON.parse(localStorage.getItem('savedArticlesByUser')) || {};
+    const userArticles = allSaved[user.username] || [];
+    const updatedArticles = userArticles.filter(a => a.url !== url);
+    allSaved[user.username] = updatedArticles;
+    localStorage.setItem('savedArticlesByUser', JSON.stringify(allSaved));
+    setSavedArticles(updatedArticles);
   };
 
   const isArticleSaved = (url) => {

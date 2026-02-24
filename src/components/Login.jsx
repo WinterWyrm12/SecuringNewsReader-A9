@@ -7,10 +7,14 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState('regular');
+  // error state
   const [error, setError] = useState('');
+  // context and nav
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // get the page they tried to access or default to home
+  const from = location.state?.from || '/';
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -30,7 +34,11 @@ function Login() {
     } catch (err) {
       setError('Login failed. Please try again.');
     }
+
+    navigate(from, {replace: true});
   };
+
+  
 
   return (
     <div className="login-container">
@@ -71,7 +79,7 @@ function Login() {
               onChange={(e) => setSelectedRole(e.target.value)}
             >
               <option value="regular">Regular User</option>
-              <option value="premium">Premium User</option>
+              <option value="admin">Admin User</option>
             </select>
           </div>
 

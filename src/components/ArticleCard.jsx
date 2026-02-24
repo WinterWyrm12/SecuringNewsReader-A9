@@ -1,8 +1,18 @@
+import { useEffect } from 'react';
 import { useArticles } from '../context/ArticlesContext';
+import { useAuth } from '../context/AuthContext';
 
 function ArticleCard({ article }) {
   const { saveArticle, removeArticle, isArticleSaved } = useArticles();
   const saved = isArticleSaved(article.url);
+  const {user} = useAuth();
+
+
+
+  // load all saved
+  const allSaved = JSON.parse(localStorage.getItem('savedArticlesByUser')) || {};
+  const userSaved = user ? allSaved[user.username] || [] : [];
+
 
   const handleBookmarkClick = () => {
     if (saved) {
